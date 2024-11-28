@@ -1,37 +1,38 @@
 ﻿@page "/fetchdata"
-
+@using PruebaTecnica.Data
+@using PruebaTecnica.Models
+@inject UsuariosServices ForecastService
 <PageTitle>Weather forecast</PageTitle>
 
-@using PruebaTecnica.Data
-@inject WeatherForecastService ForecastService
+<h3>Lista de Usuarios</h3>
 
-<h1>Weather forecast</h1>
-
-<p>This component demonstrates fetching data from a service.</p>
-
-@if (forecasts == null)
+@if (usuarios == null)
 {
-    <p><em>Loading...</em></p>
+    <p>Cargando...</p>
+}
+else if (!usuarios.Any())
+{
+    <p>No hay usuarios registrados.</p>
 }
 else
 {
-    <table class="table">
+    <table>
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
+                <th>Usuario ID</th>
+                <th>Email</th>
+                <th>Nombre</th>
+                <th>Fecha Registro</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var forecast in forecasts)
+            @foreach (var usuario in usuarios)
             {
                 <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
+                    <td>@usuario.UsuarioID</td>
+                    <td>@usuario.Email</td>
+                    <td>@usuario.Nombre</td>
+                    <td>@usuario.FechaRegistro.ToString("yyyy-MM-dd")</td>
                 </tr>
             }
         </tbody>
@@ -39,10 +40,10 @@ else
 }
 
 @code {
-    private WeatherForecast[]? forecasts;
+    private List<Usuarios>? usuarios;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+        usuarios = await ForecastService.GetUsuariosAsync();
     }
 }
