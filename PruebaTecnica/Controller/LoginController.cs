@@ -1,29 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PruebaTecnica.Data;
 using PruebaTecnica.Service;
 
 namespace PruebaTecnica.Controller
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class LoginController : ControllerBase
     {
-        private readonly TokenService _jwtTokenService;
+        private readonly UsuariosServices _usuarioService;
 
-        public LoginController(TokenService jwtTokenService)
+        public LoginController(UsuariosServices usuarioService)
         {
-            _jwtTokenService = jwtTokenService;
+            _usuarioService = usuarioService;
         }
 
-        [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginModel model)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> ObtenerUsuario(int id)
         {
-            // Aquí deberías verificar el usuario contra tu base de datos
-            if (model.Username == "test" && model.Password == "password")
-            {
-                var token = _jwtTokenService.GenerateToken(model.Username);
-                return Ok(new { Token = token });
-            }
-            return Unauthorized();
+            var usuario = await _usuarioService.ObtenerUsuarioPorNombreAsync(id);
+            return usuario != null ? Ok(usuario) : NotFound();
         }
     }
 }
