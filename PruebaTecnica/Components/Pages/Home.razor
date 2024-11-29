@@ -1,0 +1,17 @@
+﻿@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+<div>
+    <AuthorizeView>
+        <NotAuthorized>
+            <a href="/login">Hacer Login</a>
+        </NotAuthorized>
+        <Authorized>
+            <a href="/logout">Salir</a>
+        </Authorized>
+
+    </AuthorizeView>
+</div>
