@@ -1,67 +1,6 @@
 ﻿@page "/login"
 
-@using Microsoft.AspNetCore.Authentication
-@using Microsoft.AspNetCore.Authentication.Cookies
-@using System.Security.Claims
-@inject NavigationManager navegate
+
 
 <h3>Login</h3>
 
-<div class="form-group">
-    <label for="loginName">Username</label>
-    <InputText id="loginName" class="form-control" @bind-Value="Model.LoginName" />
-</div>
-
-<div class="form-group">
-    <label for="password">Password</label>
-    <InputText id="password" type="password" class="form-control" @bind-Value="Model.Password" />
-</div>
-
-@if (!string.IsNullOrEmpty(errorMessage))
-{
-    <div class="alert alert-danger mt-3">@errorMessage</div>
-}
-
-<a class="btn btn-primary" @onclick="Authenticate">Login</a>
-
-@code {
-    public class ViewLogin
-    {
-        public string LoginName { get; set; }
-        public string Password { get; set; }
-    }
-
-    public ViewLogin Model { get; set; } = new ViewLogin();
-    private string? errorMessage;
-    private string role = "Administrator";
-
-    private async Task Authenticate()
-    {
-        // Datos de ejemplo para usuario y contraseña
-        string validUsername = "admin";
-        string validPassword = "12345";
-
-        // Validación contra los datos de ejemplo
-        if (Model.LoginName != validUsername || Model.Password != validPassword)
-        {
-            errorMessage = "Usuario o contraseña incorrectos";
-            return;
-        }
-
-        // Si las credenciales son correctas, creamos los claims
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, Model.LoginName),
-            new Claim(ClaimTypes.Role, role),
-        };
-
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        var principal = new ClaimsPrincipal(identity);
-
-        // Simulamos el inicio de sesión
-        await Task.Delay(500);  // Simulación de la llamada asincrónica
-
-        // Redirigimos al usuario al inicio
-        navegate.NavigateTo("/");
-    }
-}

@@ -3,28 +3,52 @@
 @using PruebaTecnica.Models
 @inject AplicacionDbContext _dbContext
 @inject NavigationManager navegate
+@rendermode InteractiveServer
+@inject IJSRuntime funcionesJS
 
 <h3>Empezar prueba</h3>
 
-@if (preguntas == null)
+@if (preguntasConRespuestas == null)
 {
-    <p>Cargando preguntas de la evaluacion...</p>
+    <p>Cargando preguntas de la evaluación...</p>
+}
+else if (!preguntasConRespuestas.Any())
+{
+    <p>No hay preguntas disponibles para esta evaluación.</p>
 }
 else
 {
-            @foreach (var evaluacion in preguntas)
+    @foreach (var item in preguntasConRespuestas)
+    {
+        <div>
+            <p><strong>Pregunta:</strong> @item.Pregunta.Texto</p>
+
+            @if (item.Respuestas.Any())
             {
-                <div>
-                    <p>@evaluacion.Texto </p>
-                    <p>@evaluacion.Tipo </p>
-                </div>
+                <InputSelect class="form-select" @bind-Value="@item.RespuestaSeleccionada">
+                    <option value="">Seleccione una opción</option>
+                    @foreach (var respuesta in item.Respuestas)
+                    {
+                        <option value="@respuesta.RespuestaID">@respuesta.Texto</option>
+                    }
+                </InputSelect>
             }
+            else
+            {
+                <InputText class="form-control" placeholder="Escribe tu respuesta" @bind-Value="@item.RespuestaLibre" />
+            }
+        </div>
+    }
+
+    <button class="btn btn-primary mt-3" @onclick="Guardar">Guardar Respuestas</button>
 }
 
 @code {
     [Parameter]
     public string evaluacionId { get; set; }
-    private List<Preguntas> preguntas;
+
+    // Lista para almacenar preguntas y sus respuestas
+    private List<PreguntaConRespuestas> preguntasConRespuestas;
 
     protected override async Task OnInitializedAsync()
     {
@@ -35,12 +59,72 @@ else
             return;
         }
 
-        // Obtener preguntas del curso
-        preguntas = await _dbContext.Preguntas
-            .Where(e => e.EvaluacionID == evaluacionIdInt)
+        // Consultar preguntas y sus respuestas
+        preguntasConRespuestas = await _dbContext.Preguntas
+            .Where(p => p.EvaluacionID == evaluacionIdInt)
+            .Select(p => new PreguntaConRespuestas
+                {
+                    Pregunta = p,
+                    Respuestas = _dbContext.Respuestas
+                        .Where(r => r.PreguntaID == p.PreguntaID)
+                        .ToList()
+                })
             .ToListAsync();
-
     }
 
-   
+    // Método para guardar las respuestas del usuario
+    private async Task Guardar()
+    {
+        int usuarioId = 2; 
+
+           var intento = new Intentos
+                {
+                    UsuarioID = usuarioId,
+                    EvaluacionID = int.Parse(evaluacionId),
+                    FechaInicio = DateTime.Now,
+                    FechaFin = DateTime.Now,
+                    Calificacion = 0 
+                };
+
+            // Guardar el nuevo intento en la base de datos
+            _dbContext.Intentos.Add(intento);
+            await _dbContext.SaveChangesAsync();
+        
+
+        // Crear las respuestas del usuario
+        var respuestasUsuario = new List<RespuestasUsuario>();
+        foreach (var item in preguntasConRespuestas)
+        {
+            var respuestaUsuario = new RespuestasUsuario
+                {
+                    IntentoID = intento.IntentoID,
+                    PreguntaID = item.Pregunta.PreguntaID
+                };
+
+            if (item.RespuestaSeleccionada is null)
+            {
+                respuestaUsuario.RespuestaAbierta = item.RespuestaLibre;
+            }
+            else
+            {
+                respuestaUsuario.RespuestaID = int.Parse(item.RespuestaSeleccionada);
+            }
+
+            respuestasUsuario.Add(respuestaUsuario);
+        }
+
+        // Guardar todas las respuestas en una sola operación
+        _dbContext.RespuestasUsuario.AddRange(respuestasUsuario);
+        await _dbContext.SaveChangesAsync();
+        await funcionesJS.InvokeVoidAsync("console.log", "Se guardó con éxito");
+    }
+
+    // Modelo auxiliar para almacenar preguntas con respuestas
+    private class PreguntaConRespuestas
+    {
+        public Preguntas? Pregunta { get; set; }
+        public List<Respuestas> Respuestas { get; set; } = new();
+        public string? RespuestaSeleccionada { get; set; }
+        public string? RespuestaLibre { get; set; }
+    }
 }

@@ -6,13 +6,12 @@ namespace PruebaTecnica.Models
     {
         [Key]
         public int RespuestaID { get; set; }
-
-        public Preguntas PreguntaID { get; set; }
-
+        public int PreguntaID { get; set; }
         public string Texto { get; set; }
-
         public bool EsCorrecta { get; set; }
-        public ICollection<RespuestasUsuario> RespuestasUsuario { get; set; }
 
+        public Preguntas Pregunta { get; set; }
+        public List<RespuestasUsuario> RespuestasUsuario { get; set; }
     }
+
 }

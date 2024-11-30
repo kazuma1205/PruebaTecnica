@@ -1,19 +1,62 @@
 ﻿@page "/counter"
-@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using PruebaTecnica.Models
+@inject AplicacionDbContext _dbContext
 
-<PageTitle>Counter</PageTitle>
+<h3>Intentos del Usuario</h3>
 
-<h1>Counter</h1>
-
-<p role="status">Current count: @currentCount</p>
-
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+@if (intentos == null)
+{
+    <p>Cargando datos...</p>
+}
+else if (!intentos.Any())
+{
+    <p>No hay intentos disponibles para este usuario.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Calificación</th>
+                <th>Evaluación</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var intento in intentos)
+            {
+                <tr>
+                    <td>@intento.FechaInicio</td>
+                    <td>@intento.FechaFin?.ToString("g")</td>
+                    <td>@(intento.Calificacion.HasValue ? intento.Calificacion.Value.ToString("F2") : "Sin calificar")</td>
+                    <td>@intento.TituloEvaluacion</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
 @code {
-    private int currentCount = 0;
+    private List<IntentoDto> intentos;
 
-    private void IncrementCount()
+    protected override async Task OnInitializedAsync()
     {
-        currentCount++;
+        // Cambiar el ID del usuario según corresponda
+        int usuarioId = 2;
+        intentos = await _dbContext.Intentos
+             .Where(i => i.UsuarioID == usuarioId)
+             .Join(_dbContext.Evaluaciones,
+                 i => i.EvaluacionID,
+                 c => c.EvaluacionID,
+                 (i, c) => new IntentoDto
+                     {
+                         TituloEvaluacion = c.Titulo,
+                         FechaFin = i.FechaFin,
+                         FechaInicio = i.FechaInicio,
+                         Calificacion = i.Calificacion
+                     })
+             .ToListAsync();
     }
 }

@@ -6,10 +6,14 @@ namespace PruebaTecnica.Models
     {
         [Key]
         public int RespuestaUsuarioID { get; set; }
-        public Intentos IntentoID { get; set; }
-        public Preguntas PreguntaID { get; set; }
-        public Respuestas RespuestaID { get; set; }
+        public int IntentoID { get; set; }
+        public int PreguntaID { get; set; }
+        public int? RespuestaID { get; set; }
         public string RespuestaAbierta { get; set; }
 
+        public Intentos Intento { get; set; }
+        public Preguntas Pregunta { get; set; }
+        public Respuestas Respuesta { get; set; }
     }
+
 }
