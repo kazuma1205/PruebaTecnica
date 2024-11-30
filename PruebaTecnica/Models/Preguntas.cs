@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PruebaTecnica.Models
 {
@@ -6,7 +7,11 @@ namespace PruebaTecnica.Models
     {
         [Key]
         public int PreguntaID { get; set; }
-        public Evaluaciones EvaluacionID { get; set; }
+        [ForeignKey("Evaluacion")]
+
+        public int EvaluacionID { get; set; }
+        public Evaluaciones Evaluacion { get; set; }
+
         public string Texto { get; set; }
         public string Tipo { get; set; }
         public ICollection<Respuestas> Respuestas { get; set; }

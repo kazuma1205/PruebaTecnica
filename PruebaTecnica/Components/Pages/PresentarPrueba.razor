@@ -1,0 +1,46 @@
+﻿@page "/presentar-prueba/{evaluacionId}"
+@using Microsoft.EntityFrameworkCore
+@using PruebaTecnica.Models
+@inject AplicacionDbContext _dbContext
+@inject NavigationManager navegate
+
+<h3>Empezar prueba</h3>
+
+@if (preguntas == null)
+{
+    <p>Cargando preguntas de la evaluacion...</p>
+}
+else
+{
+            @foreach (var evaluacion in preguntas)
+            {
+                <div>
+                    <p>@evaluacion.Texto </p>
+                    <p>@evaluacion.Tipo </p>
+                </div>
+            }
+}
+
+@code {
+    [Parameter]
+    public string evaluacionId { get; set; }
+    private List<Preguntas> preguntas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        int evaluacionIdInt;
+        if (!int.TryParse(evaluacionId, out evaluacionIdInt))
+        {
+            navegate.NavigateTo("/weather");
+            return;
+        }
+
+        // Obtener preguntas del curso
+        preguntas = await _dbContext.Preguntas
+            .Where(e => e.EvaluacionID == evaluacionIdInt)
+            .ToListAsync();
+
+    }
+
+   
+}

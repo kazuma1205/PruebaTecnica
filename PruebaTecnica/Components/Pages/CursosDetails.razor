@@ -1,0 +1,88 @@
+﻿@page "/cursos-detail/{IdCurso}"
+@using Microsoft.EntityFrameworkCore
+@using PruebaTecnica.Models
+@inject AplicacionDbContext _dbContext
+@inject NavigationManager navegate
+
+<h3>Detalles del Curso</h3>
+
+@if (curso == null)
+{
+    <p>Cargando información del curso...</p>
+}
+else
+{
+    <h6>@curso.Nombre</h6>
+    <p>@curso.Descripcion</p>
+    <p>Fecha de creación: @curso.FechaCreacion.ToString("dd/MM/yyyy")</p>
+}
+
+@if (evaluaciones == null)
+{
+    <p>Cargando evaluaciones...</p>
+}
+else if (!evaluaciones.Any())
+{
+    <p>No hay evaluaciones disponibles para este curso.</p>
+}
+else
+{
+    <h4>Evaluaciones Disponibles</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var evaluacion in evaluaciones)
+            {
+                <tr>
+                    <td>@evaluacion.Titulo</td>
+                    <td>@evaluacion.Descripcion</td>
+                    <td>@evaluacion.FechaInicio.ToString("dd/MM/yyyy")</td>
+                    <td>@evaluacion.FechaFin.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <a href="/presentar-prueba/@evaluacion.EvaluacionID" class="btn btn-primary">PresentarPrueba</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public string IdCurso { get; set; }
+
+    private Cursos curso;
+    private List<Evaluaciones> evaluaciones;
+
+    protected override async Task OnInitializedAsync()
+    {
+        int idCursoInt;
+        if (!int.TryParse(IdCurso, out idCursoInt))
+        {
+            navegate.NavigateTo("/error");
+            return;
+        }
+
+        // Obtener información del curso
+        curso = await _dbContext.Cursos
+            .FirstOrDefaultAsync(c => c.CursoID == idCursoInt);
+
+        // Obtener las evaluaciones del curso
+        evaluaciones = await _dbContext.Evaluaciones
+            .Where(e => e.CursoID == idCursoInt)
+            .ToListAsync();
+    }
+
+    private void PresentarPrueba(int evaluacionId)
+    {
+        navegate.NavigateTo($"/presentar-prueba/{evaluacionId}");
+    }
+}

@@ -6,8 +6,8 @@ namespace PruebaTecnica.Models
     {
         [Key]
         public int IntentoID { get; set; }
-        public Usuarios UsuarioID { get; set; }
-        public Evaluaciones EvaluacionID { get; set; }
+        public int UsuarioID { get; set; }
+        public int EvaluacionID { get; set; }
 
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }

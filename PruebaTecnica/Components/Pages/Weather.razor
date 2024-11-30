@@ -1,64 +1,76 @@
 ﻿@page "/weather"
-@attribute [StreamRendering]
+@using Microsoft.EntityFrameworkCore
+@using PruebaTecnica.Data
+@using PruebaTecnica.Models
+@inject AplicacionDbContext _dbContext
+@inject NavigationManager navegate
 
-<PageTitle>Weather</PageTitle>
+<h3>Lista de Cursos</h3>
 
-<h1>Weather</h1>
-
-<p>This component demonstrates showing data.</p>
-
-@if (forecasts == null)
+@if (usuarios == null)
 {
-    <p><em>Loading...</em></p>
+    <p>Cargando Cursos...</p>
+}
+else if (!usuarios.Any())
+{
+    <p>No hay Cursos disponibles.</p>
 }
 else
 {
-    <table class="table">
+    <table class="table table-striped">
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th>Instructor</th>
+                <th>Acción</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var forecast in forecasts)
+            @foreach (var curso in cursos)
             {
                 <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
+                    <td>@curso.Nombre</td>
+                    <td>@curso.Descripcion</td>
+                    <td>@curso.Instructor</td>
+                    <td>
+                        <a href="/cursos-detail/@curso.CursoID" class="btn btn-primary">Ver Detalles</a>
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
-}
 
-@code {
-    private WeatherForecast[]? forecasts;
+    @code {
+    private List<Usuarios> usuarios;
+    private List<CursosDto> cursos;
+    public int UsuarioId = 2;
 
     protected override async Task OnInitializedAsync()
     {
-        // Simulate asynchronous loading to demonstrate streaming rendering
-        await Task.Delay(500);
-
-        var startDate = DateOnly.FromDateTime(DateTime.Now);
-        var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
-        forecasts = Enumerable.Range(1, 5).Select(index => new WeatherForecast
-        {
-            Date = startDate.AddDays(index),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = summaries[Random.Shared.Next(summaries.Length)]
-        }).ToArray();
+        cursos = await _dbContext.Inscripciones
+            .Where(i => i.UsuarioID == UsuarioId)
+            .Join(_dbContext.Cursos,
+                i => i.CursoID,
+                c => c.CursoID,
+                (i, c) => new { i, c })
+            .Join(_dbContext.Usuarios,
+                ic => ic.i.UsuarioID,
+                u => u.UsuarioID,
+                (ic, u) => new CursosDto
+                    {
+                        CursoID = ic.i.CursoID,
+                        Nombre = ic.c.Nombre,
+                        Descripcion = ic.c.Descripcion,
+                        Instructor = u.Nombre
+                    })
+            .ToListAsync();
+        usuarios = await _dbContext.Usuarios.ToListAsync();
     }
 
-    private class WeatherForecast
+    private void DetailsCurso(int curso)
     {
-        public DateOnly Date { get; set; }
-        public int TemperatureC { get; set; }
-        public string? Summary { get; set; }
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+        navegate.NavigateTo($"/cursos-detail/{curso.ToString()}");
     }
+}
 }

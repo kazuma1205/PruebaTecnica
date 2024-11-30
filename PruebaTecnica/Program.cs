@@ -11,7 +11,7 @@ builder.Services.AddRazorComponents()
 //Conexion bd
 
 builder.Services.AddDbContext<AplicacionDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //componentes Login
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
