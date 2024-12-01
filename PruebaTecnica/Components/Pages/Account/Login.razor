@@ -1,6 +1,72 @@
 ﻿@page "/login"
+@using PruebaTecnica.Models
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+<h3>Iniciar Sesión</h3>
+
+<EditForm Model="@loginModel" OnValidSubmit="HandleLogin" FormName="LoginForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Usuario:</label>
+        <InputText @bind-Value="loginModel.Username" />
+    </div>
+    <div>
+        <label>Contraseña:</label>
+        <InputText @bind-Value="loginModel.Password" InputType="password" />
+    </div>
+    <div>
+        <button type="submit">Iniciar Sesión</button>
+    </div>
+</EditForm>
+
+<p>@errorMessage</p>
+
+@code {
+    private LoginModel loginModel = new LoginModel
+    
+    {
+        Username= "admin",
+        Password = "1234"
+    };
+    private string errorMessage = string.Empty;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = string.Empty;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/login", loginModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                // Guarda el token en LocalStorage
+                if (result != null)
+                {
+                    await LocalStorage.SetItemAsync("authToken", result.Token);
+                }
+                // Redirige a la página de inicio
+                Navigation.NavigateTo("/weather");
+            }
+            else
+            {
+                errorMessage = "Credenciales inválidas.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Ocurrió un error: " + ex.Message;
+        }
+    }
 
 
-
-<h3>Login</h3>
-
+    public class LoginResponse
+    {
+        public string Token { get; set; } = string.Empty;
+    }
+}
